@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analizador de Autenticidad de Imágenes</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .upload-box { 
+            border: 2px dashed #ccc; 
+            padding: 30px; 
+            text-align: center; 
+            margin: 20px 0; 
+        }
+        .btn { 
+            background-color: #4CAF50; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 4px;
+            cursor: pointer; 
+            font-size: 16px;
+            margin-top: 20px;
+            display: inline-block;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .messages { 
+            margin: 20px 0; 
+        }
+        .message { 
+            padding: 10px; 
+            margin: 5px 0; 
+        }
+        .error { 
+            background-color: #ffdddd; 
+        }
+        .success { 
+            background-color: #ddffdd; 
+        }
+        #file-list { 
+            margin: 15px 0; 
+            text-align: left;
+        }
+        .file-item { 
+            padding: 8px; 
+            border-bottom: 1px solid #eee; 
+        }
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        .file-input-label:hover {
+            background-color: #0b7dda;
+        }
+        #file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Analizador de Autenticidad de Imágenes</h1>
+    <p>Selecciona una o más imágenes para analizar sus metadatos y determinar su autenticidad.</p>
+    
+    <div class="messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" action="/upload" id="upload-form">
+        <div class="upload-box">
+            <label for="file-input" class="file-input-label">
+                Seleccionar archivos
+            </label>
+            <input type="file" name="files[]" id="file-input" multiple accept=".jpg,.jpeg,.png" required>
+            <p>Formatos soportados: JPG, JPEG, PNG (Máx. 50MB total)</p>
+            <div id="file-list"></div>
+            
+            <!-- Botón de análisis (inicialmente deshabilitado) -->
+            <button type="submit" class="btn" id="analyze-btn" disabled>
+                Analizar Imágenes
+            </button>
+        </div>
+    </form>
+    
+    <p><a href="/all_results">Ver todos los resultados anteriores</a></p>
+
+    <script>
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const fileList = document.getElementById('file-list');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            fileList.innerHTML = '';
+            
+            if (this.files.length > 0) {
+                // Habilitar el botón de análisis
+                analyzeBtn.disabled = false;
+                
+                const header = document.createElement('div');
+                header.textContent = `Archivos seleccionados: ${this.files.length}`;
+                fileList.appendChild(header);
+                
+                // Mostrar lista de archivos (hasta 5)
+                for (let i = 0; i < Math.min(this.files.length, 5); i++) {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    item.textContent = this.files[i].name;
+                    fileList.appendChild(item);
+                }
+                
+                if (this.files.length > 5) {
+                    const more = document.createElement('div');
+                    more.className = 'file-item';
+                    more.textContent = `... y ${this.files.length - 5} más`;
+                    fileList.appendChild(more);
+                }
+            } else {
+                // Deshabilitar el botón si no hay archivos
+                analyzeBtn.disabled = true;
+            }
+        });
+
+        // Validación antes de enviar el formulario
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            const files = document.getElementById('file-input').files;
+            if (files.length === 0) {
+                e.preventDefault();
+                alert('Por favor selecciona al menos un archivo');
+            }
+        });
+    </script>
+</body>
+</html>
