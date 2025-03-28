@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resultados del Análisis</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .result-container { margin-top: 20px; }
+        .image-result { border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .image-preview { max-width: 200px; height: auto; margin-right: 15px; float: left; }
+        .image-info { overflow: hidden; }
+        .metadata { font-size: 0.9em; color: #555; margin: 5px 0; }
+        .analysis { margin: 10px 0; padding: 10px; background-color: #f5f5f5; border-radius: 3px; }
+        .error { color: #d32f2f; background-color: #ffebee; padding: 10px; border-radius: 3px; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 15px; background-color: #333; color: white; text-decoration: none; clear: both; }
+        .summary { background-color: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .clearfix::after { content: ""; display: table; clear: both; }
+    </style>
+</head>
+<body>
+    <h1>Resultados del Análisis</h1>
+    
+    <div class="summary">
+        <h3>Resumen del Procesamiento</h3>
+        <p>Se procesaron {{ resultados|length }} imágenes:</p>
+        <ul>
+            <li>Correctas: {{ resultados|selectattr('error', 'undefined')|list|length }}</li>
+            <li>Con errores: {{ resultados|selectattr('error')|list|length }}</li>
+        </ul>
+    </div>
+    
+    <div class="result-container">
+        {% for resultado in resultados %}
+            <div class="image-result clearfix">
+                <h3>{{ resultado.filename }}</h3>
+                
+                {% if resultado.error %}
+                    <div class="error">
+                        <strong>Error:</strong> {{ resultado.error }}
+                    </div>
+                {% else %}
+                    <img src="{{ url_for('uploaded_file', filename=resultado.filename) }}" alt="Miniatura" class="image-preview">
+                    
+                    <div class="image-info">
+                        <div class="metadata">
+                            <p><strong>Dispositivo:</strong> {{ resultado.metadatos.get('Make', 'Desconocido') }} {{ resultado.metadatos.get('Model', 'Desconocido') }}</p>
+                            <p><strong>Fecha:</strong> {{ resultado.metadatos.get('DateTimeOriginal', 'No disponible') }}</p>
+                            <p><strong>Resolución:</strong> {{ resultado.metadatos.get('ImageWidth', '?') }}x{{ resultado.metadatos.get('ImageHeight', '?') }}</p>
+                        </div>
+                        
+                        <div class="analysis">
+                            <h4>Análisis de Autenticidad:</h4>
+                            {% for line in resultado.analisis.split('\n') %}
+                                <p>{{ line }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    
+    <a href="/" class="back-btn">Analizar más imágenes</a>
+    <a href="/all_results" class="back-btn">Ver todos los resultados</a>
+</body>
+</html>
