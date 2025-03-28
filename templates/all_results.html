@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todos los Resultados</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .result-list { margin-top: 20px; }
+        .result-item { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        .result-item h3 { margin-top: 0; }
+        .metadata { font-size: 0.9em; color: #555; }
+        .analysis { margin: 10px 0; padding: 10px; background-color: #f5f5f5; border-radius: 3px; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 15px; background-color: #333; color: white; text-decoration: none; }
+        .search-box { margin: 20px 0; }
+        .timestamp { font-size: 0.8em; color: #888; }
+    </style>
+</head>
+<body>
+    <h1>Todos los Resultados de Análisis</h1>
+    
+    <div class="search-box">
+        <input type="text" id="search-input" placeholder="Buscar por nombre de archivo...">
+        <button onclick="filterResults()">Buscar</button>
+    </div>
+    
+    <div class="result-list" id="results-container">
+        {% for resultado in resultados %}
+            <div class="result-item">
+                <h3>{{ resultado.filename }} <span class="timestamp">{{ resultado.timestamp|datetimeformat }}</span></h3>
+                
+                {% if resultado.error %}
+                    <div class="error">{{ resultado.error }}</div>
+                {% else %}
+                    <div class="metadata">
+                        <p><strong>Dispositivo:</strong> {{ resultado.metadatos.get('Make', 'Desconocido') }} {{ resultado.metadatos.get('Model', 'Desconocido') }}</p>
+                        <p><strong>Fecha:</strong> {{ resultado.metadatos.get('DateTimeOriginal', 'No disponible') }}</p>
+                    </div>
+                    
+                    {% if resultado.analisis %}
+                        <div class="analysis">
+                            <p>{{ resultado.analisis[:200] }}...</p>
+                        </div>
+                    {% endif %}
+                {% endif %}
+                
+                <a href="{{ url_for('uploaded_file', filename=resultado.filename) }}" target="_blank">Ver imagen</a>
+            </div>
+        {% else %}
+            <p>No hay resultados disponibles.</p>
+        {% endfor %}
+    </div>
+    
+    <a href="/" class="back-btn">Volver al analizador</a>
+
+    <script>
+        function filterResults() {
+            const input = document.getElementById('search-input').value.toLowerCase();
+            const items = document.querySelectorAll('.result-item');
+            
+            items.forEach(item => {
+                const filename = item.querySelector('h3').textContent.toLowerCase();
+                if (filename.includes(input)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        // Permitir búsqueda al presionar Enter
+        document.getElementById('search-input').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                filterResults();
+            }
+        });
+    </script>
+</body>
+</html>
